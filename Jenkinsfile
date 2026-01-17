@@ -14,19 +14,19 @@ pipeline {
 
 
 
-    stage('Install & Test') {
+    stage('Install & Test (APT)') {
 
       steps {
 
         sh '''
 
-          python3 -m venv venv
+          set -e
 
-          . venv/bin/activate
+          apt-get update
 
-          pip install -r requirements.txt
+          apt-get install -y python3 python3-pip python3-pytest python3-flask
 
-          python -m pytest -q
+          python3 -m pytest -q
 
         '''
 
