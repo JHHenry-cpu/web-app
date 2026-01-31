@@ -2,7 +2,7 @@
 
 - name: Deploy Flask web app with Docker Swarm
 
-  hosts: local
+  hosts: localhost
 
   become: true
 

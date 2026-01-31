@@ -40,6 +40,15 @@ def delete_task(task_id):
 
     return redirect("/")
 
+@sample.after_request
+
+def security_headers(response):
+
+    response.headers["X-Frame-Options"] = "DENY"
+
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    return response
 
 
 if __name__ == "__main__":
