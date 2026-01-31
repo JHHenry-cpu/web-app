@@ -9,7 +9,7 @@ def reset_tasks():
     global tasks
     tasks.clear()
     yield
-    tasks.clear()
+    tasks.clear()pytes
 
 
 

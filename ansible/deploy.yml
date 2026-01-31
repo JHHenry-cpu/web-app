@@ -1,0 +1,93 @@
+---
+
+- name: Deploy Flask web app with Docker Swarm
+
+  hosts: local
+
+  become: true
+
+
+
+  vars:
+
+    project_dir: "{{ lookup('env','HOME') }}/web-app"
+
+    image_name: "web-app:latest"
+
+    service_name: "web-app-service"
+
+    replicas: 2
+
+    publish_port: "5050:5050"
+
+
+
+  tasks:
+
+    - name: Install required packages
+
+      apt:
+
+        name:
+
+          - docker.io
+
+        update_cache: true
+
+        state: present
+
+
+
+    - name: Ensure Docker service is running
+
+      service:
+
+        name: docker
+
+        state: started
+
+        enabled: true
+
+
+
+    - name: Check Swarm status
+
+      command: docker info --format '{{ "{{.Swarm.LocalNodeState}}" }}'
+
+      register: swarm_state
+
+      changed_when: false
+
+
+
+    - name: Initialize Swarm if inactive
+
+      command: docker swarm init
+
+      when: swarm_state.stdout != "active"
+
+
+
+    - name: Build Docker image for web app
+
+      command: docker build -t {{ image_name }} .
+
+      args:
+
+        chdir: "{{ project_dir }}"
+
+
+
+    - name: Check if service exist
+      command: docker service ls --format '{{ "{{.Name}}" }}'
+      register: service_list
+      changed_when: false
+
+    - name: Create service (first time)
+      command: docker service create --name {{ service_name }} --replicas {{ replicas }} -p {{ publish_port }} {{ image_name }}
+      when: service_name not in service_list.stdout_lines
+
+    - name: Update service (after changes)
+      command: docker service update --image {{ image_name }} --replicas {{ replicas }} {{ service_name }}
+      when: service_name in service_list.stdout_lines
+
